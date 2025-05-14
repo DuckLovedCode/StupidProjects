@@ -1,0 +1,229 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <cs50.h>
+#include <string.h>
+
+
+typedef struct snode{
+    int num;
+    struct snode *next;
+}snode;
+typedef struct dnode{
+    int num;
+    struct dnode *next;
+    struct dnode *previous;
+}dnode;
+
+int kprmtr;
+int sprmtr;
+const int amount = 4;
+
+snode *newSnode(void);
+dnode *newDnode(void);
+void ssearch(snode *list, int x);
+void dsearch(dnode *list, int x);
+void freeList(void* head, int isDouble);
+
+int main(int argc, char *argv[]){
+    //taking the decide of s or d
+    if (argc != 3){
+        printf("Usage: ./nodetry -(s or d) -(a or p)\n");
+        return 1;
+    }
+    char single[] = "-s";
+    char doubl[] = "-d";
+    if (strcmp(argv[1], single) == 0){
+        kprmtr = 0;
+    }
+    else if (strcmp(argv[1], doubl) == 0){
+        kprmtr = 1;
+    }
+    else if (strcmp(argv[1], doubl) != 0 && strcmp(argv[1], single) != 0){
+        printf("Usage: ./nodetry -(s or d) -(a or p)\n");
+        return 1;
+    }
+    char append[] = "-a";
+    char prepend[] = "-p";
+    if (strcmp(argv[2], append) == 0){
+        sprmtr = 0;
+    }
+    else if (strcmp(argv[2], prepend) == 0){
+        sprmtr = 1;
+    }
+    else if (strcmp(argv[2], append) != 0 && strcmp(argv[2], prepend) != 0){
+        printf("Usage: ./nodetry -(s or d) -(a or p)\n");
+        return 1;
+    }
+
+    //s for single with prmtr 0
+    //d for double with prmtr 1
+    //a for append تصاعدي with sprmtr 0
+    //p for prepend تنازلي with sprmtr 1
+
+    if (kprmtr == 0){
+        snode *list = newSnode();
+    }
+    else{
+        dnode *list =newDnode();
+    }
+
+    // نظام البحث/الخروج
+    //made by deepseek
+    char choice;
+    do {
+        string input = get_string("\nPress S for search, E for exit: ");
+        choice = toupper(input[0]);
+
+        if (choice == 'S') {
+            int num = get_int("Enter number to search: ");
+            if (kprmtr == 0) {
+                ssearch((snode*)list, num);
+            } else {
+                dsearch((dnode*)list, num);
+            }
+        } else if (choice != 'E') {
+            printf("Invalid choice!\n");
+        }
+    } while (choice != 'E');
+
+    // تحرير الذاكرة قبل الخروج
+    freeList(list, kprmtr);
+    printf("Memory freed. Exiting...\n");
+    return 0;
+
+}
+
+snode *newSnode(void){
+    //making it
+    snode *slist = NULL;
+    for (int i = 0; i < amount; i++){
+        snode *n = (malloc(sizeof(snode)));
+        if (n == NULL){
+            free(slist);
+            printf("memory problem");
+            return NULL;
+        }
+        int num = get_int("your num: ");
+        n->num = num;
+        n->next = NULL;
+        if (sprmtr == 0){
+            if (slist == NULL){
+                slist = n;
+            }
+            else if (slist != NULL){
+                snode *last;
+                last = slist;
+                while (last->next != NULL){
+                    last = last->next;
+                }
+                //اعتبر نفسك اخدت مواصلة لاخر بوينتر في المؤشر
+                last->next = n;
+            }
+        }
+        else if (sprmtr == 1){
+            if (slist == NULL){
+                slist = n;
+            }
+            else if (slist != NULL){
+                n->next = slist;
+                slist = n;
+            }
+        }
+
+    }
+        return slist;
+}
+
+dnode *newDnode(void){
+    dnode *dlist = NULL;
+    for (int i = 0; i < amount; i++){
+        dnode *n = malloc(sizeof(dnode));
+        if (n == NULL){
+            free(dlist);
+            printf("memory problem");
+            return NULL;
+        }
+        int num = get_int("your num: ");
+        n->num = num;
+        n->next = NULL;
+        n->previous = NULL;
+        if (sprmtr == 1){
+            if (dlist == NULL){
+                dlist = n;
+            }
+            else if (dlist != NULL){
+                n->next = dlist;
+                dlist->previous = n;
+                dlist = n;
+            }
+        }
+        else if (sprmtr == 0){
+            if (dlist == NULL){
+                dlist = n;
+            }
+            else if (dlist != NULL){
+                dnode *last;
+                last = dlist;
+                while (last->next != NULL){
+                    last = last->next;
+                }
+                last->next = n;
+                n->previous = last;
+            }
+
+        }
+
+    }
+    return dlist;
+}
+
+void ssearch(snode *list, int x){
+    snode *arrw;
+    arrw = list;
+    int rank = 0;
+    while(arrw != NULL){
+        if (arrw->num == x){
+            printf("found in rank %i\n", rank);
+            return;
+        }
+        else{
+            rank++;
+            arrw = arrw->next;
+        }
+    }
+    printf("not found\n");
+}
+void dsearch(dnode *list, int x){
+    dnode *arrw;
+    arrw = list;
+    int rank = 0;
+    while(arrw != NULL){
+        if (arrw->num == x){
+            printf("found in rank %i\n", rank);
+            return;
+        }
+        else{
+            rank++;
+            arrw = arrw->next;
+        }
+    }
+    printf("not found\n");
+}
+//made by deepseek the effort here is not required
+void freeList(void* head, int isDouble) {
+    if (isDouble) {
+        dnode* current = (dnode*)head;
+        while (current != NULL) {
+            dnode* temp = current;
+            current = current->next;
+            free(temp);
+        }
+    } else {
+        snode* current = (snode*)head;
+        while (current != NULL) {
+            snode* temp = current;
+            current = current->next;
+            free(temp);
+        }
+    }
+}
